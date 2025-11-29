@@ -51,18 +51,18 @@ def sim_GBM(r, sigma, S0, T, N, M):
     t_grid = np.linspace(0, T, N+1)
     # Calculate time step size
     dt = t_grid[1] - t_grid[0]
-    # Square root of time step (used in Brownian motion increment)
-    sqrt_dt = np.sqrt(dt)
+    # Generate all random shocks: shape (M, N)
+    Z = np.random.randn(M, N)
     
-    # Initialize stock price paths matrix with initial value S0
-    S_paths = np.ones((M, N+1)) * S0
+    # Compute multiplicative increments: 1 + r*dt + sigma*sqrt(dt)*Z
+    multipliers = np.ones((M, N+1))
+    multipliers[:, 1:] = 1 + r * dt + sigma * np.sqrt(dt) * Z  # shape (M, N)
     
-    # Simulate stock price paths using Euler scheme
-    for i in range(N):
-        # Generate random increments from standard normal distribution
-        dW = rnd.randn(M)
-        # Apply GBM formula: S_{t+dt} = S_t + S_t * (r*dt + sigma*dW*sqrt(dt))
-        S_paths[:, i+1] = S_paths[:, i] + S_paths[:, i] * (r * dt + sigma * dW * sqrt_dt)
+    # Cumulative product along time axis
+    S_paths = S0 * np.cumprod(multipliers, axis=1)
+    
+    # Prepend S0 at time 0
+    S_paths = np.hstack([np.full((M, 1), S0), S_paths])
     
     return t_grid, S_paths
 
@@ -230,32 +230,8 @@ def sim_option(S_paths, K, B, r, T, option_type: int = 0):
     --------
     mean_price : float
         Average option price across all paths
-    """
-    # Decode option type using bitwise operations
-    is_up = (option_type & 0x01) == 0    # 0=Up barrier, 1=Down barrier
-    is_call = (option_type & 0x02) == 0  # 0=Call option, 1=Put option
-    is_out = (option_type & 0x04) == 0   # 0=Out barrier, 1=In barrier
-    
-    # Calculate European option payoff at maturity (discounted)
-    if is_call:
-        euro_option = np.maximum(0, S_paths[:, -1] - K) * np.exp(-r * T)
-    else:
-        euro_option = np.maximum(0, K - S_paths[:, -1]) * np.exp(-r * T)
-        
-    # Determine extreme price based on barrier direction
-    if is_up:
-        extreme_price = np.max(S_paths, axis=1)
-    else:
-        extreme_price = np.min(S_paths, axis=1)
-        
-    # Determine valid paths based on barrier condition
-    if not (is_out ^ is_up):
-        is_valid = extreme_price < B
-    else:
-        is_valid = extreme_price > B
-    
-    # Apply barrier condition
-    price = euro_option * is_valid
+    """    
+    price = sim_options(S_paths, K, B, r, T, option_type)
     
     # Return mean price across all paths
     return price.mean()
@@ -291,38 +267,7 @@ def sim_option_with_CI(S_paths, K, B, r, T, option_type: int = 0):
     CI : numpy.ndarray
         99% confidence interval [lower_bound, upper_bound] for the price estimate
     """
-    # Decode option type using bitwise operations
-    is_up = (option_type & 0x01) == 0    # Bit 0: 0=Up barrier, 1=Down barrier
-    is_call = (option_type & 0x02) == 0  # Bit 1: 0=Call option, 1=Put option
-    is_out = (option_type & 0x04) == 0   # Bit 2: 0=Out barrier, 1=In barrier
-    
-    # Calculate European option payoff at maturity (discounted to present value)
-    if is_call:
-        # Call option payoff: max(S_T - K, 0)
-        euro_option = np.maximum(0, S_paths[:, -1] - K) * np.exp(-r * T)
-    else:
-        # Put option payoff: max(K - S_T, 0)
-        euro_option = np.maximum(0, K - S_paths[:, -1]) * np.exp(-r * T)
-    
-    # Determine extreme price based on barrier direction
-    if is_up:
-        # For up barriers, check maximum price reached
-        extreme_price = np.max(S_paths, axis=1)
-    else:
-        # For down barriers, check minimum price reached
-        extreme_price = np.min(S_paths, axis=1)
-    
-    # Determine valid paths based on barrier condition
-    # Logic: (is_out XOR is_up) determines the barrier crossing condition
-    if not (is_out ^ is_up):
-        # For Up-and-Out or Down-and-In: barrier not crossed (extreme < B)
-        is_valid = extreme_price < B
-    else:
-        # For Up-and-In or Down-and-Out: barrier crossed (extreme > B)
-        is_valid = extreme_price > B
-    
-    # Apply barrier condition: payoff is 0 for invalid paths
-    price = euro_option * is_valid
+    price = sim_options(S_paths, K, B, r, T, option_type)
     
     # Calculate Monte Carlo estimate and 99% confidence interval
     mean_price = np.mean(price)
@@ -330,26 +275,3 @@ def sim_option_with_CI(S_paths, K, B, r, T, option_type: int = 0):
     CI = mean_price + np.array([-2.575, 2.575]) * price.std() / np.sqrt(len(price))
     
     return mean_price, CI
-
-# Main execution block for testing the functions
-if __name__ == "__main__":
-    # Simulate stock price paths using Geometric Brownian Motion
-    # Parameters: r=0.05 (5% risk-free rate), sigma=0.2 (20% volatility),
-    # S0=100 (initial price), T=1 (1 year maturity), N=1024 (time steps), M=10000 (paths)
-    t_grid, S_paths = sim_GBM(r=0.05, sigma=0.2, S0=100, T=1, N=1024, M=10000)
-    
-    # Set barrier level
-    b = 120
-    
-    # Set option type to 'Up-and-in call' (encoded as 4)
-    type_int = 4
-    
-    # Calculate option price with 99% confidence interval
-    value, CI = sim_option_with_CI(S_paths, 100, b, 0.05, 1, type_int)
-    
-    # Print results
-    print(value)  # Mean option price
-    print(CI)     # Confidence interval
-
-
-
