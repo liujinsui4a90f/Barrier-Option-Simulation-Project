@@ -8,8 +8,11 @@ This project provides a comprehensive Monte Carlo simulation-based library for p
 
 ```
 /
+├── GPU_version
+│   ├── all_content_gpu.py         
+│   └── utils_gpu.py               
 ├── README.md              # Project documentation
-├── implemtation.ipynb     # Main implementation and analysis code (Jupyter Notebook)
+├── all_content.py         # Main implementation and analysis code
 ├── utils.py               # Core function library
 └── user manual.md         # Detailed user manual
 ```
@@ -174,11 +177,3 @@ python utils.py
 - For more accurate results with continuous barrier monitoring, use smaller time steps (larger N)
 - The 3/2 model provides more realistic volatility dynamics compared to constant volatility models
 - Confidence intervals assume normal distribution of the estimator (valid for large M)
-
-## License
-
-This project is for learning and research purposes only.
-
-## Contributing
-
-Issues and improvement suggestions are welcome.

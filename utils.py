@@ -112,8 +112,8 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
     sqrt_dt = np.sqrt(dt)
     
     # Initialize stock price and variance paths
-    S_paths = np.ones((M, N+1)) * S0
-    V_paths = np.ones((M, N+1)) * V0
+    S_paths = np.full((M, 1), S0)
+    V_paths = np.full((M, N+1), V0)
     
     # Calculate correlation factor for generating correlated Brownian motions
     correlation_factor = np.sqrt(1 - rho**2)

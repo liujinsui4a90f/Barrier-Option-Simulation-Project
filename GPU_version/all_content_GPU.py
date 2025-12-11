@@ -26,7 +26,7 @@ def BS_basic():
     values: pd.DataFrame = pd.DataFrame(values)
     values.index = [f"B={b}" for b in B]
     values = values.T
-    print(values.to_latex())
+    print("Simulation results saved to GPU_version/results/basic_BS.tex")
     with open('GPU_version/results/basic_BS.tex', 'w', encoding='utf-8') as f:
         f.write(values.to_latex())
 
@@ -46,7 +46,7 @@ def BS_analysis_M():
         del t_grid
         del S_paths
 
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
     axs = axs.flatten()
 
     m = np.linspace(3, 6, 30)
@@ -84,7 +84,7 @@ def BS_analysis_N():
         del t_grid
         del S_paths
     
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
 
     axs = axs.flatten()
 
@@ -122,7 +122,7 @@ def sto_vol_basic():
     values = pd.DataFrame(values)
     values.index = [f"B={b}" for b in B]
     values = values.T
-    print(values.to_latex())
+    print("Simulation results saved to GPU_version/results/basic_3over2.tex")
     with open('GPU_version/results/basic_3over2.tex', 'w', encoding='utf-8') as f:
         f.write(values.to_latex())
 
@@ -144,7 +144,7 @@ def sto_vol_analysis_M():
         del S_paths
         
 
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
     axs = axs.flatten()
 
     m = np.linspace(3, 6, 30)
@@ -184,7 +184,7 @@ def sto_vol_analysis_N():
         
         del S_paths
     
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
 
     axs = axs.flatten()
 
@@ -218,7 +218,7 @@ def sto_vol_analysis_lambda():
             data_lbd_3over2[type_str]['upper'] = np.append(data_lbd_3over2[type_str]['upper'], CI[0])
             data_lbd_3over2[type_str]['lower'] = np.append(data_lbd_3over2[type_str]['lower'], CI[1])
 
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
 
     axs = axs.flatten()
 
@@ -255,7 +255,7 @@ def sto_vol_analysis_rho():
             data_lbd_3over2[type_str]['upper'] = np.append(data_lbd_3over2[type_str]['upper'], CI[0])
             data_lbd_3over2[type_str]['lower'] = np.append(data_lbd_3over2[type_str]['lower'], CI[1])
 
-    fig, axs = plt.subplots(2,4, figsize=(21, 7), dpi=300)
+    fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
 
     axs = axs.flatten()
 

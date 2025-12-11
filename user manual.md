@@ -168,8 +168,9 @@ where I(valid_path) is an indicator function that equals 1 if the path satisfies
 
 ## Dependencies
 
-- NumPy
-- NumPy.random
+- `NumPy`
+- `NumPy.random`
+- `torch` (optional)
 
 ## Notes
 
@@ -177,4 +178,3 @@ where I(valid_path) is an indicator function that equals 1 if the path satisfies
 - For more accurate results with continuous barrier monitoring, use smaller time steps (larger N)
 - The 3/2 model provides more realistic volatility dynamics compared to constant volatility models
 - Confidence intervals assume normal distribution of the estimator (valid for large M)
-```

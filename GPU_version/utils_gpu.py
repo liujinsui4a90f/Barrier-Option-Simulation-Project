@@ -107,8 +107,8 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
     sqrt_dt = torch.sqrt(dt)
     
     # Initialize stock price and variance paths
-    S_paths = torch.ones((M, N+1), device=device) * S0
-    V_paths = torch.ones((M, N+1), device=device) * V0
+    S_paths = torch.full((M, N+1), S0, device=device)
+    V_paths = torch.full((M, N+1), V0, device=device)
     
     # Calculate correlation factor for generating correlated Brownian motions
     rho = torch.tensor(rho, device=device)
