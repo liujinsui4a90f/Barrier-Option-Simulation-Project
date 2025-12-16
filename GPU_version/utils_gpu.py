@@ -1,10 +1,6 @@
 import torch
 from torch.distributions.normal import Normal
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-from typing import Dict, List
 
 
 option_types = {'Up-and-out call': 0,     # Binary: 000
@@ -107,9 +103,9 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
     sqrt_dt = torch.sqrt(dt)
     
     # Initialize stock price and variance paths
-    S_paths = torch.full((M, N+1), S0, device=device)
-    V_paths = torch.full((M, N+1), V0, device=device)
-    
+    S_paths = torch.full((M, N+1), S0, dtype=torch.float64, device=device)
+    V_paths = torch.full((M, N+1), V0, dtype=torch.float64, device=device)
+
     # Calculate correlation factor for generating correlated Brownian motions
     rho = torch.tensor(rho, device=device)
     correlation_factor = torch.sqrt(1 - rho**2)
@@ -275,25 +271,19 @@ def sim_option_with_CI(S_paths, K, B, r, T, option_type: int = 0):
     return mean_price, CI
 
 if __name__ == "__main__":
-    import time
+    import matplotlib.pyplot as plt
+    t, V, S = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=10)
 
-    # from utils import sim_GBM as sim_GBM_torch
-    # # start = time.time()
-    # # t, S = sim_GBM_torch(0.05, 0.2, 100, 1, 252, 1000000)
-    # # print(f"numpy spent {time.time()- start}s to simulate 1e6 paths")
-    # start = time.time()
-    # t, S = sim_GBM(0.05, 0.2, 100, 1, 252, 10000)
-    # print(f"torch spent {time.time()- start}s to simulate 1e6 paths")
+    fig, ax = plt.subplots(1,2, figsize=(12,5))
+    for i in range(10):
+        ax[0].plot(t.cpu().numpy(), S[i, :].cpu().numpy())
+        ax[0].set_title('3/2 Model Sample Paths')
+        ax[0].set_xlabel('Time')  
+        ax[0].set_ylabel('Stock Price')
 
-    from utils import sim_3over2 as sim_3over2_torch
-    
-    # start = time.time()
-    # t, V, S = sim_3over2_torch(r=0.05, kappa=0.2, theta=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=1000000)
-    # print(f"numpy spent {time.time()- start}s to simulate 1e6 paths")
-    start = time.time()
-    t, V, S = sim_3over2(r=0.05, kappa=0.2, theta=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=1000000)
-    print(f"torch spent {time.time()- start}s to simulate 1e6 paths")
+        ax[1].plot(t.cpu().numpy(), V[i, :].cpu().numpy())
+        ax[1].set_title('3/2 Model Variance Paths')
+        ax[1].set_xlabel('Time')  
+        ax[1].set_ylabel('Variance')
 
-    price = sim_options(S, 100, 120, 0.05, 1, 0)
-    print(f"price: {price.mean()}")
-    print(f"{price.shape} paths are simulated")
+    plt.show()

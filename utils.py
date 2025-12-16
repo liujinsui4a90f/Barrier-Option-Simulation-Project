@@ -61,9 +61,6 @@ def sim_GBM(r, sigma, S0, T, N, M):
     # Cumulative product along time axis
     S_paths = S0 * np.cumprod(multipliers, axis=1)
     
-    # Prepend S0 at time 0
-    S_paths = np.hstack([np.full((M, 1), S0), S_paths])
-    
     return t_grid, S_paths
 
 
@@ -112,9 +109,9 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
     sqrt_dt = np.sqrt(dt)
     
     # Initialize stock price and variance paths
-    S_paths = np.full((M, 1), S0)
-    V_paths = np.full((M, N+1), V0)
-    
+    S_paths = np.full((M, N+1), S0, dtype=np.float64)
+    V_paths = np.full((M, N+1), V0, dtype=np.float64)
+
     # Calculate correlation factor for generating correlated Brownian motions
     correlation_factor = np.sqrt(1 - rho**2)
     
@@ -275,3 +272,20 @@ def sim_option_with_CI(S_paths, K, B, r, T, option_type: int = 0):
     CI = mean_price + np.array([-2.575, 2.575]) * price.std() / np.sqrt(len(price))
     
     return mean_price, CI
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    t, V, S = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=10)
+    fig, ax = plt.subplots(1,2, figsize=(12,5))
+    for i in range(10):
+        ax[0].plot(t, S[i, :])
+        ax[0].set_title('3/2 Model Sample Paths')
+        ax[0].set_xlabel('Time')  
+        ax[0].set_ylabel('Stock Price')
+
+        ax[1].plot(t, V[i, :])
+        ax[1].set_title('3/2 Model Variance Paths')
+        ax[1].set_xlabel('Time')  
+        ax[1].set_ylabel('Variance')
+
+    plt.show()
