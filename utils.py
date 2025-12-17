@@ -128,7 +128,7 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
         
         # Update variance using 3/2 model formula
         # dV_t = kappa * V_t * (theta - V_t) * dt + lambda * V_t^(3/2) * dB_t
-        V_paths[:, i+1] = V_paths[:, i] * (1 + kappa * (theta - V_paths[:, i]) + lbd * sqrt_V * dB * sqrt_dt)
+        V_paths[:, i+1] = V_paths[:, i] * (1 + kappa * (theta - V_paths[:, i]) * dt + lbd * sqrt_V * dB * sqrt_dt)
         
         # Update stock price using current variance
         # dS_t = S_t * (r * dt + sqrt(V_t) * dW_t)
@@ -306,19 +306,19 @@ def find_h(mu, sigma, T=1.0, target=0.5):
 
 
 if __name__ == "__main__":
-    # GBM parameters
-    S0 = 100.0
-    r = 0.05
-    sigma = 0.2
-    T = 1.0
+    # test sim_3over2
+    t_grid, V_paths, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.5, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=10)
+    import matplotlib.pyplot as plt
 
-    mu = r - 0.5 * sigma ** 2
-
-    h = find_h(mu, sigma, T, target=0.5)
-
-    B_d = S0 * np.exp(-h)
-    B_u = S0 * np.exp(h)
-
-    print("Solved symmetric log-barrier width h =", h)
-    print("Lower bound B_d =", B_d)
-    print("Upper bound B_u =", B_u)
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4))
+    for i in range(10):
+        ax[0].plot(t_grid, V_paths[i], label=f"Path {i+1}")
+        ax[1].plot(t_grid, S_paths[i], label=f"Path {i+1}")
+        ax[0].set_title("Variance Paths")
+        ax[0].set_xlabel("Time")
+        ax[0].set_ylabel("Variance")
+        ax[1].set_title("Stock Price Paths")
+        ax[1].set_xlabel("Time")
+        ax[1].set_ylabel("Stock Price")
+    plt.tight_layout()
+    plt.show()

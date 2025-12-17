@@ -122,7 +122,7 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
         
         # Update variance using 3/2 model formula
         # dV_t = kappa * V_t * (theta - V_t) * dt + lambda * V_t^(3/2) * dB_t
-        V_paths[:, i+1] = V_paths[:, i] * (1 + kappa * (theta - V_paths[:, i]) + lbd * sqrt_V * dB * sqrt_dt)
+        V_paths[:, i+1] = V_paths[:, i] * (1 + kappa * (theta - V_paths[:, i]) * dt + lbd * sqrt_V * dB * sqrt_dt)
         
         # Update stock price using current variance
         # dS_t = S_t * (r * dt + sqrt(V_t) * dW_t)

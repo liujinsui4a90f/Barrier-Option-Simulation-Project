@@ -210,7 +210,7 @@ def sto_vol_analysis_lambda():
     data_lbd_3over2 = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
     for lbd in tqdm(np.linspace(0.01, 1, 100, dtype=np.float32)):
-        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=lbd, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=300000)
+        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=lbd, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=1000000)
         del t_grid
         del _
         for type_str, type_int in option_types.items():
@@ -231,8 +231,8 @@ def sto_vol_analysis_lambda():
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
         lower = np.asarray(data_lbd_3over2[type_str]['lower'])
 
-        b1, b0 = np.polyfit(lbd, values, deg=1)
-        axs[type_int].plot(lbd, b0 + b1 * lbd, c="#4bd34b", label=f'linear regression\n$y$={b1:.04f}$\\lambda$+{b0:.02f}')
+        # b1, b0 = np.polyfit(lbd, values, deg=1)
+        # axs[type_int].plot(lbd, b0 + b1 * lbd, c="#4bd34b", label=f'linear regression\n$y$={b1:.04f}$\\lambda$+{b0:.02f}')
 
         axs[type_int].plot(lbd, values, label='Value', c='r')
         axs[type_int].fill_between(lbd, lower, upper, alpha=0.7, label='CI')
@@ -249,7 +249,7 @@ def sto_vol_analysis_rho():
     data_lbd_3over2 = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
     for rho in tqdm(np.linspace(-0.99, 0.99, 100, dtype=np.float32)):
-        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=rho, S0=100, V0=0.2, T=1, N=252, M=300000)
+        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=rho, S0=100, V0=0.2, T=1, N=252, M=1000000)
         for type_str, type_int in option_types.items():
             b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
@@ -268,8 +268,8 @@ def sto_vol_analysis_rho():
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
         lower = np.asarray(data_lbd_3over2[type_str]['lower'])
 
-        b1, b0 = np.polyfit(rho, values, deg=1)
-        axs[type_int].plot(rho, b0 + b1 * rho, c="#4bd34b", label=f'linear regression\n$y$={b1:.04f}$\\rho$+{b0:.02f}')
+        # b1, b0 = np.polyfit(rho, values, deg=1)
+        # axs[type_int].plot(rho, b0 + b1 * rho, c="#4bd34b", label=f'linear regression\n$y$={b1:.04f}$\\rho$+{b0:.02f}')
 
         axs[type_int].plot(rho, values, label='Value', c='r')
         axs[type_int].fill_between(rho, lower, upper, alpha=0.7, label='CI')
@@ -290,9 +290,9 @@ if __name__ == "__main__":
 
     plt.style.use('seaborn-v0_8')
 
-    BS_basic()
-    BS_analysis_M()
-    BS_analysis_N()
+    # BS_basic()
+    # BS_analysis_M()
+    # BS_analysis_N()
     sto_vol_basic()
     sto_vol_analysis_M()
     sto_vol_analysis_N()

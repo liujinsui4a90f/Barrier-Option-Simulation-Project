@@ -230,8 +230,8 @@ def sto_vol_analysis_lambda():
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
         lower = np.asarray(data_lbd_3over2[type_str]['lower'])
 
-        b1, b0 = np.polyfit(lbd, values, deg=1)
-        axs[type_int].plot(lbd, b0 + b1 * lbd, c="#4bd34b", label=f'linear regression\n$y$={b1:.02f}$\\lambda$+{b0:.02f}')
+        # b1, b0 = np.polyfit(lbd, values, deg=1)
+        # axs[type_int].plot(lbd, b0 + b1 * lbd, c="#4bd34b", label=f'linear regression\n$y$={b1:.02f}$\\lambda$+{b0:.02f}')
 
         axs[type_int].plot(lbd, values, label='Value', c='r')
         axs[type_int].fill_between(lbd, lower, upper, alpha=0.7, label='CI')
@@ -267,8 +267,8 @@ def sto_vol_analysis_rho():
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
         lower = np.asarray(data_lbd_3over2[type_str]['lower'])
 
-        b1, b0 = np.polyfit(rho, values, deg=1)
-        axs[type_int].plot(rho, b0 + b1 * rho, c="#4bd34b", label=f'linear regression\n$y$={b1:.02f}$\\rho$+{b0:.02f}')
+        # b1, b0 = np.polyfit(rho, values, deg=1)
+        # axs[type_int].plot(rho, b0 + b1 * rho, c="#4bd34b", label=f'linear regression\n$y$={b1:.02f}$\\rho$+{b0:.02f}')
 
         axs[type_int].plot(rho, values, label='Value', c='r')
         axs[type_int].fill_between(rho, lower, upper, alpha=0.7, label='CI')
