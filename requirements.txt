@@ -1,0 +1,9 @@
+# core dependencies
+numpy>=1.19
+scipy>=1.5
+pandas>=1.2
+matplotlib>=3.3
+tqdm>=4.50
+
+# optional GPU dependency
+# torch>=1.9
