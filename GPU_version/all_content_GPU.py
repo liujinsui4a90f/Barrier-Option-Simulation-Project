@@ -7,9 +7,12 @@ from typing import Dict, List
 
 from utils_gpu import sim_GBM, sim_3over2, sim_options, sim_option, sim_option_with_CI, option_types
 
+upper_barrier = 125.5040
+lower_barrier = 79.6787
+
 def BS_basic():
     t_grid, S_paths = sim_GBM(r=0.05, sigma=0.2, S0=100, T=1, N=252, M=1000000)
-    B = np.array([80, 85, 90, 95, 105, 110, 115, 120])
+    B = np.array([80, 85, 90, 95, 105, 110, 115, 120], dtype=np.float32)
 
     values: Dict[str,List] = {}
     for type_str, type_int in option_types.items():
@@ -31,13 +34,13 @@ def BS_basic():
         f.write(values.to_latex())
 
 def BS_analysis_M():
-    data_M_GBM = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    data_M_GBM = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
-    for log10_m in tqdm(np.linspace(3, 6, 30)):
+    for log10_m in tqdm(np.linspace(3, 6, 30, dtype=np.float32)):
         M = int(10 ** log10_m)
         t_grid, S_paths = sim_GBM(r=0.05, sigma=0.2, S0=100, T=1, N=252, M=M)
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_M_GBM[type_str]['value'] = np.append(data_M_GBM[type_str]['value'], value)
@@ -49,7 +52,7 @@ def BS_analysis_M():
     fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
     axs = axs.flatten()
 
-    m = np.linspace(3, 6, 30)
+    m = np.linspace(3, 6, 30, dtype=np.float32)
     for type_str, type_int in option_types.items():
         values = np.asarray(data_M_GBM[type_str]['value'])
         upper = np.asarray(data_M_GBM[type_str]['upper'])
@@ -61,20 +64,20 @@ def BS_analysis_M():
         axs[type_int].set_xlabel('$\\log_{10} M$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_M_BS.png')
 
 def BS_analysis_N():
-    log10N = np.linspace(1,3,30)
-    data_N_GBM = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    log10N = np.linspace(1,3,30, dtype=np.float32)
+    data_N_GBM = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
 
     for log10n in tqdm(log10N):
         n = int(10**log10n)
         t_grid, S_paths = sim_GBM(r=0.05, sigma=0.2, S0=100, T=1, N=n, M=100000)
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_N_GBM[type_str]['value'] = np.append(data_N_GBM[type_str]['value'], value)
@@ -99,13 +102,13 @@ def BS_analysis_N():
         axs[type_int].set_xlabel('$\\log_{10} N$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_N_BS.png')
 
 def sto_vol_basic():
     t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=1000000)
-    B = np.array([80, 85, 90, 95, 105, 110, 115, 120])
+    B = np.array([80, 85, 90, 95, 105, 110, 115, 120], dtype=np.float32)
 
     values: Dict[str,List] = {}
     for type_str, type_int in option_types.items():
@@ -127,14 +130,14 @@ def sto_vol_basic():
         f.write(values.to_latex())
 
 def sto_vol_analysis_M():
-    data_M_GBM = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    data_M_GBM = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
-    for log10_m in tqdm(np.linspace(3, 6, 30)):
+    for log10_m in tqdm(np.linspace(3, 6, 30, dtype=np.float32)):
         M = int(10 ** log10_m)
         t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=M)
         del _
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_M_GBM[type_str]['value'] = np.append(data_M_GBM[type_str]['value'], value)
@@ -147,7 +150,7 @@ def sto_vol_analysis_M():
     fig, axs = plt.subplots(2,4, figsize=(21, 10), dpi=300)
     axs = axs.flatten()
 
-    m = np.linspace(3, 6, 30)
+    m = np.linspace(3, 6, 30, dtype=np.float32)
     for type_str, type_int in option_types.items():
         values = np.asarray(data_M_GBM[type_str]['value'])
         upper = np.asarray(data_M_GBM[type_str]['upper'])
@@ -159,22 +162,22 @@ def sto_vol_analysis_M():
         axs[type_int].set_xlabel('$\\log_{10} M$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_M_3over2.png')
 
 def sto_vol_analysis_N():
-    log10N = np.linspace(1,3,30)
-    data_N_GBM = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    log10N = np.linspace(1,3,30, dtype=np.float32)
+    data_N_GBM = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
 
     for log10n in tqdm(log10N):
         n = int(10**log10n)
-        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=n, M=100000)
+        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=n, M=300000)
         del t_grid
         del _
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_N_GBM[type_str]['value'] = np.append(data_N_GBM[type_str]['value'], value)
@@ -199,19 +202,19 @@ def sto_vol_analysis_N():
         axs[type_int].set_xlabel('$\\log_{10} N$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_N_3over2.png')
 
 def sto_vol_analysis_lambda():
-    data_lbd_3over2 = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    data_lbd_3over2 = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
-    for lbd in tqdm(np.linspace(0.01, 1, 100)):
-        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=lbd, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=100000)
+    for lbd in tqdm(np.linspace(0.01, 1, 100, dtype=np.float32)):
+        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=lbd, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=300000)
         del t_grid
         del _
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_lbd_3over2[type_str]['value'] = np.append(data_lbd_3over2[type_str]['value'], value)
@@ -222,7 +225,7 @@ def sto_vol_analysis_lambda():
 
     axs = axs.flatten()
 
-    lbd = np.linspace(0.01, 1, 100)
+    lbd = np.linspace(0.01, 2, 100, dtype=np.float32)
     for type_str, type_int in option_types.items():
         values = np.asarray(data_lbd_3over2[type_str]['value'])
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
@@ -238,17 +241,17 @@ def sto_vol_analysis_lambda():
         axs[type_int].set_xlabel('$\\lambda$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_lambda_3over2.png')
 
 def sto_vol_analysis_rho():
-    data_lbd_3over2 = {key: {'value': np.empty(0), 'upper': np.empty(0), 'lower': np.empty(0)} for key in option_types.keys()}
+    data_lbd_3over2 = {key: {'value': np.empty(0, dtype=np.float32), 'upper': np.empty(0, dtype=np.float32), 'lower': np.empty(0, dtype=np.float32)} for key in option_types.keys()}
 
-    for rho in tqdm(np.linspace(-0.99, 0.99, 100)):
-        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=rho, S0=100, V0=0.2, T=1, N=252, M=100000)
+    for rho in tqdm(np.linspace(-0.99, 0.99, 100, dtype=np.float32)):
+        t_grid, _, S_paths = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=rho, S0=100, V0=0.2, T=1, N=252, M=300000)
         for type_str, type_int in option_types.items():
-            b = 120 if type_int % 2 == 0 else 80
+            b = upper_barrier if type_int % 2 == 0 else lower_barrier
             value, CI = sim_option_with_CI(S_paths, K=100, B=b, r=0.05, T=1, option_type=type_int)
 
             data_lbd_3over2[type_str]['value'] = np.append(data_lbd_3over2[type_str]['value'], value)
@@ -259,7 +262,7 @@ def sto_vol_analysis_rho():
 
     axs = axs.flatten()
 
-    rho = np.linspace(-0.99, 0.99, 100)
+    rho = np.linspace(-0.99, 0.99, 100, dtype=np.float32)
     for type_str, type_int in option_types.items():
         values = np.asarray(data_lbd_3over2[type_str]['value'])
         upper = np.asarray(data_lbd_3over2[type_str]['upper'])
@@ -274,7 +277,7 @@ def sto_vol_analysis_rho():
         axs[type_int].set_xlabel('$\\rho$')
         axs[type_int].set_ylabel('Option Value')
         axs[type_int].legend()
-        axs[type_int].set_title(f'{type_str} (B={120 if type_int % 2 == 0 else 80})')
+        axs[type_int].set_title(f'{type_str} (B={upper_barrier if type_int % 2 == 0 else lower_barrier})')
 
     plt.savefig('GPU_version/results/sensitive_rho_3over2.png')
 

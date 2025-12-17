@@ -5,6 +5,7 @@
 
 import numpy as np
 import numpy.random as rnd
+from scipy.optimize import brentq
 
 # Dictionary mapping barrier option types to integer codes for easier reference
 # Each option type is encoded using 3 bits:
@@ -273,19 +274,51 @@ def sim_option_with_CI(S_paths, K, B, r, T, option_type: int = 0):
     
     return mean_price, CI
 
+def find_h(mu, sigma, T=1.0, target=0.5):
+    """
+    Solve for h such that survival_prob(h) = target
+    """
+    def survival_prob(h, mu, sigma, T=1.0, n_terms=500):
+        """
+        Survival probability:
+        P( |mu t + sigma W_t| < h for all t in [0, T] )
+
+        Using symmetric double-barrier series expansion.
+        """
+        prob = 0.0
+        for k in range(n_terms):
+            m = 2 * k + 1
+            exponent = (
+                - (m ** 2) * (np.pi ** 2) * (sigma ** 2) * T / (8 * h ** 2)
+            )
+            drift_term = np.cosh(m * np.pi * mu * T / (2 * h))
+            prob += (4 / (m * np.pi)) * np.exp(exponent) * drift_term
+        return prob
+    
+    def objective(h):
+        return survival_prob(h, mu, sigma, T) - target
+
+    # h must be positive; choose a safe bracket
+    h_min = 0.1
+    h_max = 10.0
+
+    return brentq(objective, h_min, h_max)
+
+
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    t, V, S = sim_3over2(r=0.05, theta=0.2, kappa=0.2, lbd=0.67, rho=-0.5, S0=100, V0=0.2, T=1, N=252, M=10)
-    fig, ax = plt.subplots(1,2, figsize=(12,5))
-    for i in range(10):
-        ax[0].plot(t, S[i, :])
-        ax[0].set_title('3/2 Model Sample Paths')
-        ax[0].set_xlabel('Time')  
-        ax[0].set_ylabel('Stock Price')
+    # GBM parameters
+    S0 = 100.0
+    r = 0.05
+    sigma = 0.2
+    T = 1.0
 
-        ax[1].plot(t, V[i, :])
-        ax[1].set_title('3/2 Model Variance Paths')
-        ax[1].set_xlabel('Time')  
-        ax[1].set_ylabel('Variance')
+    mu = r - 0.5 * sigma ** 2
 
-    plt.show()
+    h = find_h(mu, sigma, T, target=0.5)
+
+    B_d = S0 * np.exp(-h)
+    B_u = S0 * np.exp(h)
+
+    print("Solved symmetric log-barrier width h =", h)
+    print("Lower bound B_d =", B_d)
+    print("Upper bound B_u =", B_u)

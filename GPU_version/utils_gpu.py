@@ -42,7 +42,7 @@ def sim_GBM(r, sigma, S0, T, N, M):
     """
 
     # Create uniform time grid from 0 to T with N+1 points
-    t_grid = torch.linspace(0, T, N+1, device=device)
+    t_grid = torch.linspace(0, T, N+1, device=device, dtype=torch.float32)
     # Calculate time step size
     dt = t_grid[1] - t_grid[0]
     # Square root of time step (used in Brownian motion increment)
@@ -50,8 +50,8 @@ def sim_GBM(r, sigma, S0, T, N, M):
     
     # Initialize stock price paths matrix with initial value S0
     
-    multiplier = torch.ones((M, N+1), device=device)
-    multiplier[:,1:] = 1 + r * dt + sigma * sqrt_dt * torch.randn(M, N, device=device)
+    multiplier = torch.ones((M, N+1), device=device, dtype=torch.float32)
+    multiplier[:,1:] = 1 + r * dt + sigma * sqrt_dt * torch.randn(M, N, device=device, dtype=torch.float32)
     
     S_paths = S0 * torch.cumprod(multiplier, dim=1)
     
@@ -98,24 +98,24 @@ def sim_3over2(r, theta, kappa, lbd, rho, S0, V0, T, N, M):
     """
 
     # Create time grid
-    t_grid = torch.linspace(0, T, N+1, device=device)
+    t_grid = torch.linspace(0, T, N+1, device=device, dtype=torch.float32)
     dt = t_grid[1] - t_grid[0]
     sqrt_dt = torch.sqrt(dt)
     
     # Initialize stock price and variance paths
-    S_paths = torch.full((M, N+1), S0, dtype=torch.float64, device=device)
-    V_paths = torch.full((M, N+1), V0, dtype=torch.float64, device=device)
+    S_paths = torch.full((M, N+1), S0, dtype=torch.float32, device=device)
+    V_paths = torch.full((M, N+1), V0, dtype=torch.float32, device=device)
 
     # Calculate correlation factor for generating correlated Brownian motions
-    rho = torch.tensor(rho, device=device)
-    correlation_factor = torch.sqrt(1 - rho**2)
+    rho_tensor = torch.tensor(rho, device=device, dtype=torch.float32)
+    correlation_factor = torch.sqrt(1 - rho_tensor**2)
     
     # Simulate correlated paths
     for i in range(N):
         # Generate independent Brownian increments
-        dW = torch.randn(M, device=device)
+        dW = torch.randn(M, device=device, dtype=torch.float32)
         # Generate correlated Brownian increment using Cholesky decomposition
-        dB = rho * dW + correlation_factor * torch.randn(M, device=device)
+        dB = rho_tensor * dW + correlation_factor * torch.randn(M, device=device, dtype=torch.float32)
         
         # Calculate square root of current variance (used in both SDEs)
         sqrt_V = torch.sqrt(V_paths[:, i])
@@ -170,10 +170,10 @@ def sim_options(S_paths, K, B, r, T, option_type: int = 0) -> torch.Tensor:
     # Calculate European option payoff at maturity
     if is_call:
         # Call option: max(S_T - K, 0)
-        euro_option = torch.maximum(torch.zeros(()), S_paths[:, -1] - K) * torch.exp(-r * T)
+        euro_option = torch.maximum(torch.zeros((), dtype=torch.float32, device=device), S_paths[:, -1] - K) * torch.exp(-r * T)
     else:
         # Put option: max(K - S_T, 0)
-        euro_option = torch.maximum(torch.zeros(()), K - S_paths[:, -1]) * torch.exp(-r * T)
+        euro_option = torch.maximum(torch.zeros((), dtype=torch.float32, device=device), K - S_paths[:, -1]) * torch.exp(-r * T)
         
     # Determine extreme price reached along each path
     if is_up:
